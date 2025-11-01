@@ -1,0 +1,44 @@
+{
+  "compilerOptions": {
+    // Language and Environment
+    "target": "ES2022",                                  // Modern JavaScript features
+    "module": "NodeNext",                                // Node.js ESM support
+    "moduleResolution": "NodeNext",                      // Node.js module resolution
+    "lib": ["ES2022"],                                   // Include modern JS library features
+
+    // Emit Configuration
+    "outDir": "./dist",                                  // Output directory for compiled files
+    "rootDir": "./src",                                  // Root directory of source files
+    "sourceMap": true,                                   // Generate source maps for debugging
+    "removeComments": true,                              // Remove comments from output
+
+    // Type Checking
+    "strict": true,                                      // Enable all strict type checking
+    "noImplicitAny": true,                              // Error on expressions with 'any' type
+    "strictNullChecks": true,                           // Strict null and undefined checks
+    "strictFunctionTypes": true,                        // Strict function type checking
+    "noUnusedLocals": true,                             // Error on unused locals
+    "noUnusedParameters": true,                         // Error on unused parameters
+    "noImplicitReturns": true,                          // Error when not all paths return
+    "noFallthroughCasesInSwitch": true,                 // Error on fallthrough cases
+
+    // Module Resolution
+    "esModuleInterop": true,                            // Enable interop between CommonJS and ESM
+    "allowSyntheticDefaultImports": true,               // Allow default imports from modules
+    "resolveJsonModule": true,                          // Include JSON modules
+    "forceConsistentCasingInFileNames": true,           // Ensure consistent file name casing
+
+    // Advanced
+    "skipLibCheck": true,                               // Skip type checking of declaration files
+    "declaration": true,                                // Generate .d.ts files
+    "declarationMap": true                              // Generate declaration source maps
+  },
+  "include": [
+    "src/**/*"                                           // Include all files in src directory
+  ],
+  "exclude": [
+    "node_modules",                                      // Exclude node_modules
+    "dist",                                              // Exclude output directory
+    "**/*.test.ts"                                       // Exclude test files
+  ]
+}
