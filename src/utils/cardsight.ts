@@ -6,9 +6,11 @@
  */
 
 import { CardSightAI, AuthenticationError, CardSightAIError } from 'cardsightai';
+import type { CardDetection, DetectedCard, IdentifyResult } from 'cardsightai';
 import { config } from '../config/index.js';
 import { logger, logApiCall, logError, logDebug } from './logger.js';
-import type { ConfidenceLevel } from '../types/index.js';
+
+export type { CardDetection, DetectedCard, IdentifyResult };
 
 // Initialize the CardSight client
 export const cardsightClient = new CardSightAI({
@@ -25,26 +27,6 @@ export interface CardIdentificationResult {
   processingTime: number;
   requestId?: string;
   error?: string;
-}
-
-/**
- * Individual card detection
- */
-export interface CardDetection {
-  confidence: ConfidenceLevel;
-  card: {
-    id: string;
-    name: string;
-    year: number;
-    manufacturer: string;
-    releaseName: string;
-    setName: string;
-    number: string;
-    // Optional parallel information
-    isParallel?: boolean;
-    parallelName?: string;
-    numberedTo?: number;
-  };
 }
 
 /**
@@ -89,21 +71,7 @@ export async function identifyCard(
     }
 
     // Process detections
-    const detections: CardDetection[] = result.data.detections.map((detection: any) => ({
-      confidence: detection.confidence as ConfidenceLevel,
-      card: {
-        id: detection.card.id,
-        name: detection.card.name,
-        year: detection.card.year,
-        manufacturer: detection.card.manufacturer,
-        releaseName: detection.card.releaseName,
-        setName: detection.card.setName,
-        number: detection.card.number,
-        isParallel: detection.card.isParallel,
-        parallelName: detection.card.parallelName,
-        numberedTo: detection.card.numberedTo,
-      },
-    }));
+    const detections: CardDetection[] = result.data.detections ?? [];
 
     logDebug(`Identification complete`, {
       detectionsCount: detections.length,
@@ -169,60 +137,24 @@ export async function identifyCard(
 }
 
 /**
- * Filters detections by confidence level
- *
- * @param detections - Array of card detections
- * @param minConfidence - Minimum confidence level to include
- * @returns Filtered detections
- */
-export function filterByConfidence(
-  detections: CardDetection[],
-  minConfidence: ConfidenceLevel = 'Low'
-): CardDetection[] {
-  const confidenceOrder = ['Low', 'Medium', 'High'];
-  const minIndex = confidenceOrder.indexOf(minConfidence);
-
-  return detections.filter((detection) => {
-    const detectionIndex = confidenceOrder.indexOf(detection.confidence);
-    return detectionIndex >= minIndex;
-  });
-}
-
-/**
- * Gets the highest confidence detection from results
- *
- * @param detections - Array of card detections
- * @returns The detection with highest confidence, or undefined
- */
-export function getHighestConfidenceDetection(
-  detections: CardDetection[]
-): CardDetection | undefined {
-  if (detections.length === 0) {
-    return undefined;
-  }
-
-  const confidenceOrder = ['High', 'Medium', 'Low'];
-
-  return detections.reduce((best, current) => {
-    const bestIndex = confidenceOrder.indexOf(best.confidence);
-    const currentIndex = confidenceOrder.indexOf(current.confidence);
-    return currentIndex < bestIndex ? current : best;
-  });
-}
-
-/**
  * Formats a card display name
  *
  * @param card - Card information
  * @returns Formatted display string
  */
 export function formatCardDisplay(card: CardDetection['card']): string {
-  let display = `${card.year} ${card.setName} - ${card.name} #${card.number}`;
+  const parts = [
+    card.year,
+    card.setName,
+    card.name ? `- ${card.name}` : null,
+    card.number ? `#${card.number}` : null,
+  ].filter(Boolean);
+  let display = parts.join(' ') || 'Unknown Card';
 
-  if (card.isParallel && card.parallelName) {
-    display += ` (${card.parallelName}`;
-    if (card.numberedTo) {
-      display += ` /${card.numberedTo}`;
+  if (card.parallel?.name) {
+    display += ` (${card.parallel.name}`;
+    if (card.parallel.numberedTo) {
+      display += ` /${card.parallel.numberedTo}`;
     }
     display += ')';
   }
@@ -240,7 +172,7 @@ export async function validateCardSightConnection(): Promise<boolean> {
     // Try to check health
     const health = await cardsightClient.health.check();
 
-    if (health.data) {
+    if (health.data?.status) {
       logger.info('CardSight API connection validated successfully');
       return true;
     }

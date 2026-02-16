@@ -75,7 +75,7 @@ function createSingleCardEmbed(
   }
 
   // Add parallel information if applicable
-  if (card.isParallel) {
+  if (card.parallel) {
     embed.addFields({
       name: '**Parallel Information**',
       value: formatParallelInfo(card),
@@ -186,40 +186,50 @@ export function createProcessingEmbed(): EmbedBuilder {
  * Formats card details for display
  */
 function formatCardDetails(card: CardDetection['card']): string {
-  const lines = [
-    `**Name:** ${card.name}`,
-    `**Card Number:** ${card.number}`,
-    `**Year:** ${card.year}`,
-  ];
+  const lines: string[] = [];
+  if (card.name) {
+    lines.push(`**Name:** ${card.name}`);
+  }
+  if (card.number) {
+    lines.push(`**Card Number:** ${card.number}`);
+  }
+  if (card.year) {
+    lines.push(`**Year:** ${card.year}`);
+  }
 
-  return lines.join('\n');
+  return lines.length > 0 ? lines.join('\n') : 'No card details available';
 }
 
 /**
  * Formats set information for display
  */
 function formatSetInfo(card: CardDetection['card']): string {
-  const lines = [
-    `**Set:** ${card.setName}`,
-    `**Release:** ${card.releaseName}`,
-    `**Manufacturer:** ${card.manufacturer}`,
-  ];
+  const lines: string[] = [];
+  if (card.setName) {
+    lines.push(`**Set:** ${card.setName}`);
+  }
+  if (card.releaseName) {
+    lines.push(`**Release:** ${card.releaseName}`);
+  }
+  if (card.manufacturer) {
+    lines.push(`**Manufacturer:** ${card.manufacturer}`);
+  }
 
-  return lines.join('\n');
+  return lines.length > 0 ? lines.join('\n') : 'No set information available';
 }
 
 /**
  * Formats parallel information for display
  */
 function formatParallelInfo(card: CardDetection['card']): string {
-  const lines = [];
+  const lines: string[] = [];
 
-  if (card.parallelName) {
-    lines.push(`**Parallel:** ${card.parallelName}`);
+  if (card.parallel?.name) {
+    lines.push(`**Parallel:** ${card.parallel.name}`);
   }
 
-  if (card.numberedTo) {
-    lines.push(`**Numbered:** /${card.numberedTo}`);
+  if (card.parallel?.numberedTo) {
+    lines.push(`**Numbered:** /${card.parallel.numberedTo}`);
   }
 
   return lines.join('\n');
